@@ -32,7 +32,7 @@ int quickselect(vector<int>& arr, int k) {
 }
 
 // Algoritmo 1: Selección de puntos de ruptura
-vector<vector<vector<int>>> breakpoints_selection(int K, int L, int n,const vector<vector<int>>& P, int ns, int Nr) {
+vector<vector<Point>> breakpoints_selection(int K, int L, int n,const vector<vector<int>>& P, int ns, int Nr) {
     vector<vector<vector<int>>> B;
 
     for (int i = 0; i < L; i++) {
@@ -65,7 +65,7 @@ vector<vector<vector<int>>> breakpoints_selection(int K, int L, int n,const vect
             Bij[0] = min_region;
             Bij.push_back(max_region);
 
-            B.push_back(Bij);
+            //B.push_back(Bij);
         }
     }
 
@@ -97,11 +97,11 @@ int find_interval(const vector<int>& arr, int oz) {
     return -1; 
 }
 // Algoritmo 2: Codificación dinámica
-vector<vector<vector<int>>> dynamic_encoding(int K, int L, int n, const vector<vector<int>>& P, int ns, int Nr) {
+vector<vector<vector<int>>> dynamic_encoding(int K, int L, int n, const vector<vector<Point>>& P, int ns, int Nr) {
     vector<vector<vector<int>>> EP(n, vector<vector<int>>(L, vector<int>(K, -1))); // EP tridimensional
 
     // Puntos de ruptura
-    vector<vector<vector<int>>> B = breakpoints_selection(K, L, n, P, ns, Nr);
+    vector<vector<Point>> B = breakpoints_selection(K, L, n, P, ns, Nr);
 
     // Codificación
     for (int i = 0; i < L; i++) {

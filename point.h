@@ -21,15 +21,45 @@ struct Point {
         return sum;
     }
     bool operator==(const Point& other) const {
-    const double tolerance = 1e-6; // Tolerancia a las diferencias
-    if (coordinates.size() != other.coordinates.size()) return false;
-    for (size_t i = 0; i < coordinates.size(); ++i) {
-        if (std::abs(coordinates[i] - other.coordinates[i]) > tolerance) {
-            return false;
+        const double tolerance = 1e-6; // Tolerancia a las diferencias
+        if (coordinates.size() != other.coordinates.size()) return false;
+        for (size_t i = 0; i < coordinates.size(); ++i) {
+            if (std::abs(coordinates[i] - other.coordinates[i]) > tolerance) {
+                return false;
+            }
         }
+        return true;
     }
-    return true;
-}
+
+    double& operator[](size_t index) {
+        if (index >= coordinates.size()) {
+            throw std::out_of_range("Index out of range for Point coordinates.");
+        }
+        return coordinates[index];
+    }
+
+    const double& operator[](size_t index) const {
+        if (index >= coordinates.size()) {
+            throw std::out_of_range("Index out of range for Point coordinates.");
+        }
+        return coordinates[index];
+    }
+
+    bool operator<(const Point& other) const {
+        return coordinates < other.coordinates;
+    }
+
+    bool operator>(const Point& other) const {
+        return coordinates > other.coordinates;
+    }
+
+    bool operator<=(const Point& other) const {
+        return !(other < *this);
+    }
+
+    bool operator>=(const Point& other) const {
+        return !(*this < other);
+    }
 
 };
 

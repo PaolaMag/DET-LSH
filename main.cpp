@@ -52,7 +52,6 @@ void testing_query(string dataset_path, string query_path, string name) {
     vector<Eigen::VectorXd> dataset = readFVECS(dataset_path);
     Eigen::VectorXd query = readFVECS(query_path)[0];
 
-
     cout << query << endl;
 
 }
@@ -168,16 +167,16 @@ void test_encoding(string dataset_path, string name) {
 
 int main() {
 
-    // test_encoding("./datasets/movielens/movielens_base.fvecs", "movielens");
-    // test_encoding("./datasets/audio/audio_base.fvecs", "audio");
-    // test_encoding("./datasets/cifar60k/cifar60k_base.fvecs", "cifar60k");
+    test_encoding("./datasets/movielens/movielens_base.fvecs", "movielens");
+    test_encoding("./datasets/audio/audio_base.fvecs", "audio");
+    test_encoding("./datasets/cifar60k/cifar60k_base.fvecs", "cifar60k");
 
 
-    testing_query(
-        "./datasets/movielens/movielens_base.fvecs",
-        "./datasets/movielens/movielens_query.fvecs",
-        "movilens"
-    );
+    // testing_query(
+    //     "./datasets/movielens/movielens_base.fvecs",
+    //     "./datasets/movielens/movielens_query.fvecs",
+    //     "movilens"
+    // );
 
 
 

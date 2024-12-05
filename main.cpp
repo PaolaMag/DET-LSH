@@ -2,6 +2,7 @@
 #include <queue>
 #include <cmath>
 #include "LSH.h"
+#include "encoding.h"
 #include "reader.h"
 
 using namespace std;
@@ -47,9 +48,9 @@ vector<pair<int, double>> findKNearestNeighbors(
 }
 
 
-void print_hashes(const vector<int>& hashes) {
+void print_hashes(const vector<double>& hashes) {
     cout << "( ";
-    for (const int& hash : hashes) {
+    for (const double& hash : hashes) {
         cout << hash << " ";
     }
     cout << ")" << endl;
@@ -106,8 +107,123 @@ void print3DVector(const vector<vector<vector<int>>>& vec) {
     }
 }
 
+
+void test_1() {
+
+    /* 1. Cargamos el dataset y nuestro punto de consulta. */
+    vector<Eigen::VectorXd> dataset = readFVECS("./datasets/movielens/movielens_base.fvecs");
+    Eigen::VectorXd query = readFVECS("./datasets/movielens/movielens_query.fvecs")[0];
+
+    /* 2. Configuramos nuestro LSH. */
+    int K = 50;
+    int L = 16;
+    int d = dataset[0].size();
+    double w = 5.0;
+    LSH lsh(K, L, d, w);
+
+    vector<double> hashes = lsh.project_point(dataset[0], 0);
+    print_hashes(hashes);
+    hashes = lsh.project_point(dataset[0], 15);
+    print_hashes(hashes);
+}
+
+
+
+void test_movilens_encoding() {
+
+    /* 1. Cargamos el dataset */
+    vector<Eigen::VectorXd> dataset = readFVECS("./datasets/movielens/movielens_base.fvecs");
+
+    /* 2. Configuramos nuestro LSH. */
+    int K = 16;
+    int L = 4;
+    int d = dataset[0].size();
+    double w = 5.0;
+    LSH lsh(K, L, d, w);
+
+
+    cout << "Movilens" << endl;
+
+    /* 3. LSH proyecta todos los puntos en L espacios. */
+    auto projected_points = lsh.project_dataset(dataset);
+
+    /* 4. Codifica todos lo puntos. */
+    int ns = 20;
+    int Nr = 8;
+
+    cout << "Optimized" << endl;
+    auto encodings = dynamic_encoding(K, L, dataset.size(), projected_points, ns, Nr);
+    cout << "Non optimized" << endl;
+    
+    encodings = dynamic_encoding_non_optimized(K, L, dataset.size(), projected_points, ns, Nr);
+    
+}
+
+void test_audio_encoding() {
+
+    /* 1. Cargamos el dataset */
+    vector<Eigen::VectorXd> dataset = readFVECS("./datasets/audio/audio_base.fvecs");
+
+    /* 2. Configuramos nuestro LSH. */
+    int K = 16;
+    int L = 4;
+    int d = dataset[0].size();
+    double w = 5.0;
+    LSH lsh(K, L, d, w);
+
+
+    cout << "Audio" << endl;
+
+    /* 3. LSH proyecta todos los puntos en L espacios. */
+    auto projected_points = lsh.project_dataset(dataset);
+
+    /* 4. Codifica todos lo puntos. */
+    int ns = 20;
+    int Nr = 8;
+
+    cout << "Optimized" << endl;
+    auto encodings = dynamic_encoding(K, L, dataset.size(), projected_points, ns, Nr);
+    cout << "Non optimized" << endl;
+    
+    encodings = dynamic_encoding_non_optimized(K, L, dataset.size(), projected_points, ns, Nr);
+    
+}
+
+void test_cifar60k_encoding() {
+
+    /* 1. Cargamos el dataset */
+    vector<Eigen::VectorXd> dataset = readFVECS("./datasets/cifar60k/cifar60k_base.fvecs");
+
+    /* 2. Configuramos nuestro LSH. */
+    int K = 16;
+    int L = 4;
+    int d = dataset[0].size();
+    double w = 5.0;
+    LSH lsh(K, L, d, w);
+
+
+    cout << "cifar60k" << endl;
+
+    /* 3. LSH proyecta todos los puntos en L espacios. */
+    auto projected_points = lsh.project_dataset(dataset);
+
+    /* 4. Codifica todos lo puntos. */
+    int ns = 20;
+    int Nr = 8;
+
+    cout << "Optimized" << endl;
+    auto encodings = dynamic_encoding(K, L, dataset.size(), projected_points, ns, Nr);
+    cout << "Non optimized" << endl;
+    
+    encodings = dynamic_encoding_non_optimized(K, L, dataset.size(), projected_points, ns, Nr);
+    
+}
+
+
 int main() {
 
-    test();
+    test_movilens_encoding();
+    test_audio_encoding();
+    test_cifar60k_encoding();
     return 0;
 }

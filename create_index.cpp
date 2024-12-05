@@ -4,9 +4,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-#include "breakpoints.h"
 #include "point.h"
 #include "tree_node.h"
+
 using namespace std;
 void splitNode(TreeNode* node, int dimension, int bit) {
     TreeNode* left = new TreeNode();

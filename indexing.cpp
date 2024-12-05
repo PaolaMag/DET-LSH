@@ -6,8 +6,11 @@
 #include <ctime>
 #include "point.h"
 #include "tree_node.h"
+#include "chrono"
 
 using namespace std;
+using namespace std::chrono;
+
 void splitNode(TreeNode* node, int dimension, int bit) {
     TreeNode* left = new TreeNode();
     TreeNode* right = new TreeNode();
@@ -32,6 +35,9 @@ void splitNode(TreeNode* node, int dimension, int bit) {
 
 // Algoritmo 3: Crear el índice del árbol
 vector<TreeNode*> create_index(int K, int L, int n, const vector<vector<vector<int>>>& EP, int max_size) {
+
+    auto start = high_resolution_clock::now();
+
     vector<TreeNode*> DETs(L);
 
     for (int i = 0; i < L; i++) {
@@ -72,6 +78,11 @@ vector<TreeNode*> create_index(int K, int L, int n, const vector<vector<vector<i
 
         DETs[i] = root;
     }
+
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+
+    cout << "Indexing: " << duration.count() << " microseconds" << endl;
 
     return DETs;
 }

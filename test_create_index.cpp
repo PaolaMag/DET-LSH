@@ -2,10 +2,18 @@
 #include <vector>
 #include <random>
 #include <cassert>
+#include <chrono>
 #include "tree_node.h" 
-#include "point.h"     
-#include "create_index.h"
+#include "point.h"
+#include "Eigen/Dense"     
+#include "indexing.h"
+#include "encoding.h"
+#include "reader.h"
+#include "LSH.h"
+#include "ann_query.h"
+
 using namespace std;
+using namespace std::chrono;
 
 vector<vector<vector<int>>> generate_random_EP(int K, int L, int n) {
     vector<vector<vector<int>>> EP(n, vector<vector<int>>(L, vector<int>(K, 0)));
@@ -142,8 +150,114 @@ void test_create_index_with_split() {
     cout << "Prueba de create_index con splitNode exitosa" << endl;
 }
 
+vector<Eigen::VectorXd> generate_random_queries(int num_queries, int d) {
+    vector<Eigen::VectorXd> queries(num_queries);
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<> dis(0.0, 100.0);
+
+    for (auto& query : queries) {
+        query = Eigen::VectorXd(d);
+        for (int i = 0; i < d; ++i) {
+            query[i] = dis(gen);
+        }
+    }
+
+    return queries;
+}
+
+std::vector<Point> convertEigenToPoints(const std::vector<Eigen::VectorXd>& eigenVectors) {
+    std::vector<Point> points;
+    points.reserve(eigenVectors.size()); // Reservar memoria para optimización
+
+    for (const auto& eigenVec : eigenVectors) {
+        points.emplace_back(eigenVec); // Usar el constructor de Point
+    }
+
+    return points;
+}
+
+
+
+void test_indexing_with_queries(string dataset_path, string name) {
+    vector<Eigen::VectorXd> dataset = readFVECS(dataset_path);
+
+    int K = 16; // Dimensiones proyectadas
+    int L = 4;  // Espacios proyectados
+    int d = dataset[0].size(); // Dimensiones originales
+    double w = 5.0;
+    LSH lsh(K, L, d, w);
+
+    cout << "Dataset " << name << endl;
+
+    // 3. Proyección de puntos en L espacios
+    auto projected_points = lsh.project_dataset(dataset);
+
+    // 4. Codificación de puntos
+    int ns = 20;  // Tamaño de la muestra para breakpoints
+    int Nr = 8;   // Número de regiones
+    cout << "Optimized Encoding" << endl;
+    auto encodings = dynamic_encoding(K, L, dataset.size(), projected_points, ns, Nr);
+
+    // 5. Construcción de índices (DE-Trees)
+    int n = dataset.size();
+    int max_size = 20;
+    vector<TreeNode*> DETs = create_index(K, L, n, encodings, max_size);
+
+
+
+
+
+    // 6. Fase de consulta
+    int num_queries = 5;       // Número de consultas
+    vector<Eigen::VectorXd> queriess = generate_random_queries(num_queries, d);
+    double r_min = 10.0;       // Radio inicial para consultas ANN
+    double c = 2.0;            // Escalamiento del radio
+    double epsilon = 1.2;      // Factor de escala del radio proyectado
+    double beta = 0.1;         // Parámetro beta para falsos positivos
+    int k = 3;                 // Número de vecinos cercanos
+
+    auto queries = convertEigenToPoints(queriess);
+
+    cout << "Running queries..." << endl;
+
+    for (int i = 0; i < queries.size(); ++i) {
+        cout << "Query " << i + 1 << ": " << queries[i] << endl;
+
+
+        auto start = chrono::high_resolution_clock::now();
+        vector<Point> nearest_neighbors = c2_k_ANN_Query(
+            queries[i], K, L, n, c, r_min, epsilon, beta, k, DETs
+        );
+        auto end = chrono::high_resolution_clock::now();
+
+        cout << "Query completed in "
+             << chrono::duration_cast<chrono::milliseconds>(end - start).count()
+             << " ms" << endl;
+
+
+
+        cout << "Top-" << k << " nearest neighbors found:" << endl;
+        for (const auto& neighbor : nearest_neighbors) {
+            cout << neighbor << endl;
+        }
+
+        cout << "------------------------------------" << endl;
+    }
+
+    // Liberar memoria de los DE-Trees
+    for (auto tree : DETs) {
+        delete tree;
+    }
+}
+
 
 int main() {
     test_create_index_with_split();
+
+    // test_indexing_with_queries("./datasets/movielens/movielens_base.fvecs", "movielens");
+    // test_indexing_with_queries("./datasets/audio/audio_base.fvecs", "audio");
+    // test_indexing_with_queries("./datasets/cifar60k/cifar60k_base.fvecs", "cifar60k");
+
     return 0;
 }
